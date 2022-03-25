@@ -17,11 +17,13 @@ namespace ColorGuess
 
     public sealed class GameManager : MonoBehaviour
     {
-        public enum MENU_STATE { MAIN_MENU, IN_GAME, QUIT_CONFIRMATION };
+        public enum MENU_STATE { MAIN_MENU, IN_GAME, PRIVACY_POLICY, TUTORIAL };
         public MENU_STATE MenuState;
 
         public GameObject UIMainMenu;
         public GameObject UIInGame;
+        public GameObject UIPrivacyPolicy;
+        public GameObject UITutorial;
         public Text BestTimeText;
 
         public UserData UserData;
@@ -44,6 +46,8 @@ namespace ColorGuess
             MenuState = newMenuState;
             UIMainMenu.SetActive(MenuState == MENU_STATE.MAIN_MENU);
             UIInGame.SetActive(MenuState == MENU_STATE.IN_GAME);
+            UIPrivacyPolicy.SetActive(MenuState == MENU_STATE.PRIVACY_POLICY);
+            UITutorial.SetActive(MenuState == MENU_STATE.TUTORIAL);
         }
 
         public void StartGame()
@@ -53,6 +57,7 @@ namespace ColorGuess
             ColorGuessVisual.StartGame();
             SetMenuState(MENU_STATE.IN_GAME);
 
+            // For testing:
             //ColorGuessVisual.ShowPickedColors(UserData);
         }
 
@@ -64,6 +69,21 @@ namespace ColorGuess
         public void Undo()
         {
             ColorGuessVisual.Undo(UserData);
+        }
+
+        public void GoToPrivacyPolicy()
+        {
+            SetMenuState(MENU_STATE.PRIVACY_POLICY);
+        }
+
+        public void GoToTutorial()
+        {
+            SetMenuState(MENU_STATE.TUTORIAL);
+        }
+
+        public void GoToMainMenu()
+        {
+            SetMenuState(MENU_STATE.MAIN_MENU);
         }
 
         // Update is called once per frame

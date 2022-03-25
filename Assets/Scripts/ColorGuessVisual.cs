@@ -29,6 +29,7 @@ namespace ColorGuess
         public GameObject WinText;
         public GameObject GameOverText;
         public GameObject UndoButton;
+        public GameObject QuitButton;
         public Text TimerText;
         public Text BestTimeText;
 
@@ -72,6 +73,7 @@ namespace ColorGuess
             WinText.SetActive(false);
             GameOverText.SetActive(false);
             UndoButton.SetActive(false);
+            QuitButton.SetActive(false);
 
             m_time = 0.0f;
 
@@ -90,6 +92,7 @@ namespace ColorGuess
             WinText.SetActive(true);
             GameOverText.SetActive(false);
             UndoButton.SetActive(false);
+            QuitButton.SetActive(true);
 
             for (int i = 0; i < 4; i++)
                 QuestionMarks[i].SetActive(false);
@@ -110,6 +113,7 @@ namespace ColorGuess
             WinText.SetActive(false);
             GameOverText.SetActive(true);
             UndoButton.SetActive(false);
+            QuitButton.SetActive(true);
 
             for (int i = 0; i < 4; i++)
                 QuestionMarks[i].SetActive(false);
