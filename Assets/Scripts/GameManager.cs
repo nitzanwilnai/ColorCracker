@@ -39,6 +39,7 @@ namespace ColorGuess
             float bestTime = PlayerPrefs.GetFloat("BestTime");
             TimeSpan timeSpan = TimeSpan.FromSeconds(bestTime);
             BestTimeText.text = "BEST TIME: " + timeSpan.ToString(@"mm\:ss");
+            BestTimeText.gameObject.SetActive(false);
         }
 
         public void SetMenuState(MENU_STATE newMenuState)

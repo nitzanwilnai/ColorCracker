@@ -40,6 +40,8 @@ namespace ColorGuess
             for (int i = 0; i < 7; i++)
                 for (int j = 0; j < 4; j++)
                     ColorGuessRows[i].ColorButtons[j].onClick.AddListener(GameManager.Undo);
+
+            TimerText.gameObject.SetActive(false);
         }
 
         // Start is called before the first frame update
@@ -82,7 +84,7 @@ namespace ColorGuess
             float bestTime = PlayerPrefs.GetFloat("BestTime");
             TimeSpan timeSpan = TimeSpan.FromSeconds(bestTime);
             BestTimeText.text = "BEST TIME\n" + "<SIZE=60>"+ timeSpan.ToString(@"mm\:ss") + "</SIZE>";
-            BestTimeText.gameObject.SetActive(true);
+            BestTimeText.gameObject.SetActive(false);
         }
 
         public void ShowWin(UserData userData)
