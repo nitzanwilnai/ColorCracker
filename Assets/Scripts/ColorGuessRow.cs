@@ -10,5 +10,6 @@ namespace ColorGuess
         public Button[] ColorButtons;
         public Image[] Colors;
         public Image[] Results;
+        public GameObject[] Selection;
     }
 }

@@ -18,15 +18,16 @@ namespace ColorGuess
         public Image[] PickedColors;
         public GameObject[] QuestionMarks;
         public ColorGuessRow[] ColorGuessRows;
-        public Color ColorExistsRightPosition;
-        public Color ColorExistsWrongPosition;
-        public Color ColorDoesNotExist;
-        public Color ColorNotYetGuessed;
+        public Sprite ColorExistsRightPosition;
+        public Sprite ColorExistsWrongPosition;
+        public Sprite ColorDoesNotExist;
+        public Sprite ColorNotYetGuessed;
         public GameObject[] ColorButtons;
 
         public GameObject ButtonSelection;
         public GameObject NewGameButton;
-        public GameObject WinText;
+        public Text WinText;
+        public Text GuessText;
         public GameObject GameOverText;
         public GameObject UndoButton;
         public GameObject QuitButton;
@@ -39,7 +40,10 @@ namespace ColorGuess
         {
             for (int i = 0; i < 7; i++)
                 for (int j = 0; j < 4; j++)
-                    ColorGuessRows[i].ColorButtons[j].onClick.AddListener(GameManager.Undo);
+                {
+                    int localJ = j;
+                    ColorGuessRows[i].ColorButtons[j].onClick.AddListener(() => { GameManager.Instance.SetColorIndex(localJ); });
+                }
 
             TimerText.gameObject.SetActive(false);
         }
@@ -50,7 +54,7 @@ namespace ColorGuess
 
         }
 
-        public void StartGame()
+        public void StartGame(UserData userData)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -63,7 +67,8 @@ namespace ColorGuess
                 for (int j = 0; j < 4; j++)
                 {
                     ColorGuessRows[i].Colors[j].sprite = NoColor;
-                    ColorGuessRows[i].Results[j].color = ColorNotYetGuessed;
+                    ColorGuessRows[i].Results[j].sprite = ColorNotYetGuessed;
+                    ColorGuessRows[i].Selection[j].SetActive(false);
                 }
             }
 
@@ -72,10 +77,16 @@ namespace ColorGuess
 
             ButtonSelection.SetActive(true);
             NewGameButton.SetActive(false);
-            WinText.SetActive(false);
             GameOverText.SetActive(false);
             UndoButton.SetActive(false);
             QuitButton.SetActive(false);
+            WinText.gameObject.SetActive(false);
+
+            GuessText.gameObject.SetActive(true);
+            string title = "";
+            int colorIndex = 0;
+            GameManager.Instance.AddColorWordToTitle("GUESS THE COLORS", ref title, ref colorIndex);
+            GuessText.text = title;
 
             m_time = 0.0f;
 
@@ -83,18 +94,28 @@ namespace ColorGuess
 
             float bestTime = PlayerPrefs.GetFloat("BestTime");
             TimeSpan timeSpan = TimeSpan.FromSeconds(bestTime);
-            BestTimeText.text = "BEST TIME\n" + "<SIZE=60>"+ timeSpan.ToString(@"mm\:ss") + "</SIZE>";
+            BestTimeText.text = "BEST TIME\n" + "<SIZE=60>" + timeSpan.ToString(@"mm\:ss") + "</SIZE>";
             BestTimeText.gameObject.SetActive(false);
+
+            UpdateGuessColors(userData, userData.GuessRow);
+
+            // TESTING
+            //ShowPickedColors(userData);
         }
 
         public void ShowWin(UserData userData)
         {
             ButtonSelection.SetActive(false);
             NewGameButton.SetActive(true);
-            WinText.SetActive(true);
             GameOverText.SetActive(false);
             UndoButton.SetActive(false);
             QuitButton.SetActive(true);
+            GuessText.gameObject.SetActive(false);
+            WinText.gameObject.SetActive(true);
+            string title = "";
+            int colorIndex = 0;
+            GameManager.Instance.AddColorWordToTitle("YOU WIN!", ref title, ref colorIndex);
+            WinText.text = title;
 
             for (int i = 0; i < 4; i++)
                 QuestionMarks[i].SetActive(false);
@@ -112,7 +133,8 @@ namespace ColorGuess
         {
             ButtonSelection.SetActive(false);
             NewGameButton.SetActive(true);
-            WinText.SetActive(false);
+            GuessText.gameObject.SetActive(false);
+            WinText.gameObject.SetActive(false);
             GameOverText.SetActive(true);
             UndoButton.SetActive(false);
             QuitButton.SetActive(true);
@@ -137,15 +159,18 @@ namespace ColorGuess
                 ShowPrevGuessResults(userData);
                 for (int i = 0; i < 6; i++)
                     ColorButtons[i].SetActive(true);
+                for (int i = 0; i < 4; i++)
+                    ColorGuessRows[currentRow].Selection[i].SetActive(false);
                 UndoButton.SetActive(false);
+                if (!ColorGuessLogic.CheckGameOver(userData))
+                    UpdateGuessColors(userData, userData.GuessRow);
             }
             else
                 UndoButton.SetActive(true);
 
             if (ColorGuessLogic.CheckWin(userData, currentRow))
                 ShowWin(userData);
-
-            if (ColorGuessLogic.CheckGameOver(userData))
+            else if (ColorGuessLogic.CheckGameOver(userData))
                 ShowGameOver(userData);
         }
 
@@ -164,8 +189,11 @@ namespace ColorGuess
         {
             for (int i = 0; i < 4; i++)
             {
+                ColorGuessRows[row].Colors[i].gameObject.SetActive(true);
+
                 int colorIndex = userData.Guesses[row][i];
                 ColorGuessRows[row].Colors[i].sprite = (colorIndex > 0) ? Colors[colorIndex - 1] : NoColor;
+                ColorGuessRows[row].Selection[i].SetActive(userData.ColorIndex == i);
             }
         }
 
@@ -175,54 +203,48 @@ namespace ColorGuess
             for (int i = 0; i < 4; i++)
             {
                 int index = (i + offset) % 4;
-                switch(userData.Results[userData.GuessRow - 1][index])
+                switch (userData.Results[userData.GuessRow - 1][index])
                 {
                     case 0:
-                        ColorGuessRows[userData.GuessRow - 1].Results[index].color = ColorNotYetGuessed;
+                        ColorGuessRows[userData.GuessRow - 1].Results[index].sprite = ColorNotYetGuessed;
                         break;
                     case 1:
-                        ColorGuessRows[userData.GuessRow - 1].Results[index].color = ColorExistsWrongPosition;
+                        ColorGuessRows[userData.GuessRow - 1].Results[index].sprite = ColorExistsWrongPosition;
                         break;
                     case 2:
-                        ColorGuessRows[userData.GuessRow - 1].Results[index].color = ColorExistsRightPosition;
+                        ColorGuessRows[userData.GuessRow - 1].Results[index].sprite = ColorExistsRightPosition;
                         break;
                 }
             }
         }
 
-        public void Undo(UserData userData)
+        public void Undo(ref UserData userData)
         {
-            int undoColorIndex = ColorGuessLogic.Undo(userData);
-            if(undoColorIndex > 0)
+            int undoColorIndex = ColorGuessLogic.Undo(ref userData);
+            if (undoColorIndex > 0)
             {
                 UpdateGuessColors(userData, userData.GuessRow);
-                ColorButtons[undoColorIndex-1].SetActive(true);
+                ColorButtons[undoColorIndex - 1].SetActive(true);
             }
 
-            UndoButton.SetActive(userData.Guesses[userData.GuessRow][0] > 0);
+            UndoButton.SetActive(userData.GuessCount > 0);
         }
 
-        public void HandleInput()
+        public void UndoSpecificColorIndex(ref UserData userData, int colorIndex)
         {
-#if UNITY_EDITOR
-            bool mouseDown = Input.GetMouseButtonDown(0);
-            bool mouseMove = Input.GetMouseButton(0);
-            bool mouseUp = Input.GetMouseButtonUp(0);
-            Vector3 mousePosition = Input.mousePosition;
-#else
-            bool mouseDown = (Input.touchCount > 0) && Input.GetTouch(0).phase == TouchPhase.Began;
-            bool mouseMove = (Input.touchCount > 0) && Input.GetTouch(0).phase == TouchPhase.Moved;
-            bool mouseUp = (Input.touchCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Ended || Input.GetTouch(0).phase == TouchPhase.Canceled);
-            Vector3 mousePosition = Vector3.zero;
-            if (Input.touchCount > 0)
-                mousePosition = Input.GetTouch(0).position;
-#endif
+            int undoColorIndex = ColorGuessLogic.UndoColorIndex(ref userData, colorIndex);
+            if (undoColorIndex > 0)
+            {
+                UpdateGuessColors(userData, userData.GuessRow);
+                ColorButtons[undoColorIndex - 1].SetActive(true);
+            }
 
+            UndoButton.SetActive(userData.GuessCount > 0);
         }
 
         public void Tick(float dt)
         {
-            if(GameState == GAME_STATE.IN_GAME)
+            if (GameState == GAME_STATE.IN_GAME)
             {
                 m_time += dt;
                 TimeSpan timeSpan = TimeSpan.FromSeconds(m_time);
